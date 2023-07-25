@@ -17,5 +17,5 @@ If you don't have [pip](https://pip.pypa.io) installed, this [Python installatio
 To install pc_mouseparty from sources, run this command in your terminal:
 
 ```
-pip install git+https://github.com/PadillaCoreanoLabGeneral/pc_mouseparty
+pip install git+https://github.com/padillacoreanolab/pc_mouseparty
 ```

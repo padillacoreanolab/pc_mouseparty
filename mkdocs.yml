@@ -1,8 +1,8 @@
 site_name: pc_mouseparty
 site_description: A package for all the base functions used in the Padilla-Coreano lab.
-site_author: PadillaCoreanoLabGeneral
-site_url: https://PadillaCoreanoLabGeneral.github.io/pc_mouseparty
-repo_url: https://github.com/PadillaCoreanoLabGeneral/pc_mouseparty
+site_author: padillacoreanolab
+site_url: https://padillacoreanolab.github.io/pc_mouseparty
+repo_url: https://github.com/padillacoreanolab/pc_mouseparty
 
 copyright: "Copyright &copy; 2023 - 2023 Christopher Marais"
 
@@ -78,7 +78,7 @@ nav:
     - Contributing: contributing.md
     - FAQ: faq.md
     - Changelog: changelog.md
-    - Report Issues: https://github.com/PadillaCoreanoLabGeneral/pc_mouseparty/issues
+    - Report Issues: https://github.com/padillacoreanolab/pc_mouseparty/issues
     - Examples:
         - examples/intro.ipynb
     - API Reference:
