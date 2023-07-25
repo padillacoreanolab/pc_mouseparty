@@ -11,7 +11,7 @@
 
 
 -   Free software: MIT license
--   Documentation: https://PadillaCoreanoLabGeneral.github.io/pc_mouseparty
+-   Documentation: https://padillacoreanolab.github.io/pc_mouseparty
     
 
 ## Features
