@@ -19,8 +19,8 @@ script: tox
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
-  username: __token__
-  password: pypi-AgEIcHlwaS5vcmcCJDhjZWYyMDM0LWU1YmYtNDQxMC1hMmJjLWViZDljN2RlN2NiNAACKlszLCJjNzc4OGY2MS1jMjFiLTQ5MWEtOTkyMS1hOTU1ZDJiNWM1YTEiXQAABiCuEtTZmKcZaFPeZ7ndqnwFgmANUjlSvcM98OJgq0m14w
+  user: PadillaCoreanoLabGeneral
+  password: HaveAMiceDay22
   on:
     tags: true
     repo: PadillaCoreanoLabGeneral/pc_mouseparty
