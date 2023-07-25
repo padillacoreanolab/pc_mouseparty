@@ -11,6 +11,7 @@
 
 -   Free software: MIT license
 -   Documentation: <https://padillacoreanolab.github.io/pc_mouseparty>
+-   Pypi: <https://pypi.org/project/pc-mouseparty>
     
 
 ## Features
