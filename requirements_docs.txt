@@ -22,3 +22,6 @@ mkdocstrings-crystal
 mkdocstrings-python-legacy
 pygments
 pymdown-extensions
+
+pytest
+pytest-runner
