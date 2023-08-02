@@ -4,15 +4,6 @@
 git config --global user.email "padillacoreanolab@gmail.com"
 git config --global user.name "PadillaCoreanoLabGeneral"
 
-# Clone the repository
-# git clone https://github.com/padillacoreanolab/pc_mouseparty.git
-
-# Change to the repository directory
-# cd pc_mouseparty
-
-# Checkout the master branch
-# git checkout master
-
 # Pull the latest changes
 git pull
 
@@ -27,10 +18,8 @@ echo "Feature branches: $feature_branches"
 echo "Hotfix branches: $hotfix_branches"
 
 # Update the version number using bump2version
-command_minor="bump2version --allow-dirty --new-version=0.$feature_branches.0 minor"
-eval $command_minor
-command_patch="bump2version --allow-dirty --new-version=0.0.$hotfix_branches patch"
-eval $command_patch
+command="bump2version --allow-dirty --replace --new-version=0.$feature_branches.$hotfix_branches"
+eval $command
 
 # push tags to github and push final master version
 git push --tags
