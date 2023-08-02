@@ -8,10 +8,10 @@ git config --global user.name "PadillaCoreanoLabGeneral"
 git pull
 
 # Count the number of feature branches
-feature_branches=$(git branch --all | grep -c "release")
+feature_branches=$(git branch --all | grep -c "feature")
 
 # Count the number of hotfix branches
-hotfix_branches=$(git branch --all | grep -c "release")
+hotfix_branches=$(git branch --all | grep -c "hotfix")
 
 # Print the values of the variables using echo
 echo "Feature branches: $feature_branches"
