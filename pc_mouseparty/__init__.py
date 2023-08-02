@@ -2,4 +2,4 @@
 
 __author__ = """Christopher Marais"""
 __email__ = 'padillacoreanolab@gmail.com'
-__version__ = '__version__ = '__version__ = '0.0.0'''
+__version__ = '__version__ = '__version__ = '__version__ = '0.0.0''''
