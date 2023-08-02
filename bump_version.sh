@@ -20,14 +20,14 @@ git pull
 feature_branches=$(git branch --all | grep -c "release")
 
 # Count the number of hotfix branches
-hotfix_branches=$(git branch --all | grep -c "hotfix")
+hotfix_branches=$(git branch --all | grep -c "release")
 
 # Print the values of the variables using echo
 echo "Feature branches: $feature_branches"
 echo "Hotfix branches: $hotfix_branches"
 
 # Update the version number using bump2version
-bump2version --allow-dirty --new-version "0.${feature_branches}.${hotfix_branches}" minor patch
+bump2version --allow-dirty --new-version "0.${feature_branches}.${hotfix_branches}" 
 
 # push tags to github and push final master version
 git push --tags
