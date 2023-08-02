@@ -9,42 +9,24 @@ jobs:
   bump-version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js 16
-        uses: actions/setup-node@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          node-version: '16'
+          conda-version: '4.10.3'
+          python-version: '3.8'
+          environment-file: environment.yml
       - name: Install dependencies
         run: |
+          conda activate bump_version_env
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
-      - name: Bump version
+      - name: Give permissions to script
+        run: chmod +x bump_version.sh
+      - name: Run script in Conda environment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Count the number of feature branches
-          feature_branches=$(git branch --all | grep -c "release")
-
-          # # Count the number of hotfix branches
-          # hotfix_branches=$(git branch --all | grep -c "hotfix")
-
-          # Print the values of the variables using echo
-          echo "Feature branches: $feature_branches"
-          # echo "Hotfix branches: $hotfix_branches"
-
-          # # Update the version number using bump2version
-          # bump2version --new-version "0.${feature_branches}.${hotfix_branches}"
-
-          # # push tags to github and push final master version
-          # git push --tags
-          # git push
-
-      - name: Create release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v0.${feature_branches}.${hotfix_branches}
-          release_name: Release v0.${feature_branches}.${hotfix_branches}
-          body: |
-            New release v0.${feature_branches}.${hotfix_branches} is now available.
+          conda activate bump_version_env
+          ./bump_version.sh
