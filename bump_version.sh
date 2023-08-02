@@ -27,14 +27,14 @@ echo "Feature branches: $feature_branches"
 echo "Hotfix branches: $hotfix_branches"
 
 # Update the version number using bump2version
-command_minor="bump2version --allow-dirty minor:$feature_branches"
+command_minor="bump2version --allow-dirty --new-version=0.$feature_branches.0 minor"
 eval $command_minor
-command_patch="bump2version --allow-dirty patch:$hotfix_branches"
+command_patch="bump2version --allow-dirty --new-version=0.0.$hotfix_branches patch"
 eval $command_patch
 
 # Print the values of the variables using echo
-echo "Feature branches: $command_minor"
-echo "Hotfix branches: $command_patch"
+echo "$command_minor"
+echo "$command_patch"
 
 # push tags to github and push final master version
 git push --tags
