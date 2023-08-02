@@ -21,8 +21,8 @@
     1. create conda env with dependencies in requirements_dev.txt
     2. activate environemnt to make use of bump2version
     3. pull latest amster branch and have it checked out
-    4. run `bumpversion <major/minor/patch>` (to set a specific version use `bumpversion --verbose --new-version <major.minor.patch>`)
+    4. run `bumpversion <major/minor/patch>` (to set a specific version use `bumpversion --new-version <major#.minor#.patch#> <major/minor/patch>`)
     5. run `git push --tags`
-    6. run `git push` to push the master branch to origin or jsut push the mster to origin using a git client
+    6. run `git push` to push the master branch to origin or just push the mster to origin using a git client
     7. Go to github and use tags menu to create and publish a new release
 
