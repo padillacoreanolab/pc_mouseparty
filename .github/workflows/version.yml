@@ -14,6 +14,7 @@ jobs:
       - name: Set up Conda
         run: |
           conda create --name bump_version_env python=3.8
+          conda init bash
           conda activate bump_version_env
           conda install pip
       - name: Install dependencies
