@@ -32,6 +32,10 @@ eval $command_minor
 command_patch="bump2version --allow-dirty patch:$hotfix_branches"
 eval $command_patch
 
+# Print the values of the variables using echo
+echo "Feature branches: $command_minor"
+echo "Hotfix branches: $command_patch"
+
 # push tags to github and push final master version
 git push --tags
 git push origin master
