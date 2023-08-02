@@ -24,10 +24,10 @@ hotfix_branches=$(git branch --all | grep -c "hotfix")
 
 # Print the values of the variables using echo
 echo "Feature branches: $feature_branches"
-# echo "Hotfix branches: $hotfix_branches"
+echo "Hotfix branches: $hotfix_branches"
 
 # Update the version number using bump2version
-bump2version --new-version "0.${feature_branches}.${hotfix_branches}" minor patch
+bump2version --allow-dirty --new-version "0.${feature_branches}.${hotfix_branches}" minor patch
 
 # push tags to github and push final master version
 git push --tags
