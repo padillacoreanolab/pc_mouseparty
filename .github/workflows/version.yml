@@ -1,0 +1,39 @@
+name: Bump version
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bump2version
+      - name: Bump version
+        run: |
+          # Count the number of feature branches
+          feature_branches=$(git branch --all | grep -c "feature")
+
+          # Count the number of hotfix branches
+          hotfix_branches=$(git branch --all | grep -c "hotfix")
+
+          # Update the version number using bump2version
+          bump2version --new-version "0.${feature_branches}.${hotfix_branches}"
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v0.${feature_branches}.${hotfix_branches}
+          release_name: Release v0.${feature_branches}.${hotfix_branches}
+          body: |
+            New release v0.${feature_branches}.${hotfix_branches} is now available.

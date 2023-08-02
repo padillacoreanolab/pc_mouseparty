@@ -18,8 +18,8 @@
 ## Features
 
 -   How to update a release:
-    1. create conda env with dependencies in requirements_dev.txt
-    2. activate environemnt to make use of bump2version
+    1. create a conda environment with dependencies in requirements_dev.txt
+    2. activate environment to make use of bump2version
     3. pull latest amster branch and have it checked out
     4. run `bumpversion <major/minor/patch>` (to set a specific version use `bumpversion --new-version <major#.minor#.patch#> <major/minor/patch>`)
     5. run `git push --tags`
