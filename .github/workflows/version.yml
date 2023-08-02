@@ -19,6 +19,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
       - name: Bump version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Count the number of feature branches
           feature_branches=$(git branch --all | grep -c "feature")
@@ -32,6 +34,11 @@ jobs:
 
           # Update the version number using bump2version
           bump2version --new-version "0.${feature_branches}.${hotfix_branches}"
+
+          # push tags to github and push final master version
+          git push --tags
+          git push
+
       - name: Create release
         uses: actions/create-release@v1
         env:
