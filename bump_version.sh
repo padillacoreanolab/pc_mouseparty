@@ -27,7 +27,7 @@ echo "Feature branches: $feature_branches"
 echo "Hotfix branches: $hotfix_branches"
 
 # Update the version number using bump2version
-command="bump2version --allow-dirty minor:${feature_branches} patch:${hotfix_branches}"
+command="bump2version --allow-dirty minor patch"
 eval $command
 
 # push tags to github and push final master version
