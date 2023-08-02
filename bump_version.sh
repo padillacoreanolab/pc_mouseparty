@@ -18,7 +18,7 @@ echo "Feature branches: $feature_branches"
 echo "Hotfix branches: $hotfix_branches"
 
 # Update the version number using bump2version
-command='bump2version --allow-dirty --replace "\d+\.\d+\.\d+" --new-version=0.$feature_branches.$hotfix_branches'
+command='bump2version --allow-dirty --replace "\d+\.\d+\.\d+" --new-version=0.$feature_branches.$hotfix_branches patch'
 eval $command
 
 # push tags to github and push final master version
