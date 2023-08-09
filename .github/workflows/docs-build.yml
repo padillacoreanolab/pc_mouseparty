@@ -1,13 +1,12 @@
 name: docs-build
 
 on:
-  push:
-    branches:
-      - master
+  pull_request:
+      branches:
+          - master
 
 jobs:
     deploy:
-        if: ${{ startsWith(github.ref, 'refs/tags/v')}}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
