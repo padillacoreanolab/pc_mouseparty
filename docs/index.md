@@ -19,4 +19,4 @@
 
 -   TODO
 
-testing docs on pypi
+GH-Pages Docs
