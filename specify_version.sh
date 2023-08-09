@@ -13,7 +13,7 @@ feature_branches=$(git branch --all | grep -c "feature")
 # Count the number of hotfix branches
 hotfix_branches=$(git branch --all | grep -c "hotfix")
 
-# Define verion numbers
+# Define version numbers
 major_num=0
 # minor_num=$feature_branches
 minor_num=0
