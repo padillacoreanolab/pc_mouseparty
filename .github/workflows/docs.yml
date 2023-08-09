@@ -2,8 +2,8 @@ name: docs
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - master
 
 jobs:
     deploy:
