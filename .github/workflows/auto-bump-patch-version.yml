@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Give permissions to script
-        run: chmod +x bump_version.sh
+        run: chmod +x bump_patch.sh
       - name: Set up conda env and run script
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
