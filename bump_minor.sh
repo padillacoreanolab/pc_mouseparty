@@ -8,7 +8,7 @@ git config --global user.name "PadillaCoreanoLabGeneral"
 git pull
 
 # Update the version number using bump2version
-command='bump2version minor'
+command='bump2version --allow-dirty minor'
 eval $command
 
 # push tags to github and push final master version
