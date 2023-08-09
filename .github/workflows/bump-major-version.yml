@@ -1,0 +1,23 @@
+name: Bump major
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Give permissions to script
+        run: chmod +x bump_version.sh
+      - name: Set up conda env and run script
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          eval "$(conda shell.bash hook)"
+          conda create --name bump_version_env python=3.8
+          conda activate bump_version_env
+          python -m pip install --upgrade pip
+          pip install -r requirements_dev.txt
+          ./bump_major.sh

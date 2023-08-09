@@ -1,9 +1,7 @@
-name: Bump version
+name: Bump minor
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   bump-version:
@@ -22,4 +20,4 @@ jobs:
           conda activate bump_version_env
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
-          ./bump_version.sh
+          ./bump_minor.sh

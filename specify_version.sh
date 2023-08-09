@@ -13,12 +13,15 @@ feature_branches=$(git branch --all | grep -c "feature")
 # Count the number of hotfix branches
 hotfix_branches=$(git branch --all | grep -c "hotfix")
 
-# Print the values of the variables using echo
-echo "Feature branches: $feature_branches"
-echo "Hotfix branches: $hotfix_branches"
+# Define verion numbers
+major_num=0
+# minor_num=$feature_branches
+minor_num=0
+# patch_num=$hotfix_branches
+patch_num=0
 
 # Update the version number using bump2version
-command='bump2version --allow-dirty --replace "\d+\.\d+\.\d+" --new-version=0.$feature_branches.$hotfix_branches patch'
+command='bump2version --allow-dirty --replace "\d+\.\d+\.\d+" --new-version=$major_num.$minor_num.$patch_num patch'
 eval $command
 
 # push tags to github and push final master version
