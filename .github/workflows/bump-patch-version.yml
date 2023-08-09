@@ -1,9 +1,7 @@
-name: Auto bump version
+name: Bump patch version
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   bump-version:

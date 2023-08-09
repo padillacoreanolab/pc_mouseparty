@@ -1,4 +1,4 @@
-name: Bump minor
+name: Bump minor version
 
 on:
   workflow_dispatch:
