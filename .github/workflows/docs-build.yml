@@ -3,7 +3,7 @@ name: docs-build
 on:
   push:
     tags:
-      - '*'
+      - '**'
 
 jobs:
     deploy:

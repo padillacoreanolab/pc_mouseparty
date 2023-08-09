@@ -3,8 +3,8 @@ name: docs
 on:
     push:
       tags:
-        - '*'
-        
+        - '**'
+
 jobs:
     deploy:
         runs-on: ubuntu-latest
