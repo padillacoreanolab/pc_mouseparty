@@ -26,3 +26,5 @@
     6. run `git push` to push the master branch to origin or just push the mster to origin using a git client
     7. Go to github and use tags menu to create and publish a new release
 
+    update docs test on gh repo
+
