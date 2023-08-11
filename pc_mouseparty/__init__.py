@@ -2,7 +2,7 @@
 
 __author__ = """Christopher Marais"""
 __email__ = 'padillacoreanolab@gmail.com'
-__version__ = '0.0.20'
+__version__ = '0.0.21'
 
 # import os
 # import glob
