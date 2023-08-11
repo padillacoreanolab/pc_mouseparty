@@ -5,7 +5,7 @@
 import pytest
 
 
-from pc_mouseparty import pc_mouseparty
+import pc_mouseparty
 
 
 @pytest.fixture
