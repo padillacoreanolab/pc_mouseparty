@@ -1,6 +1,6 @@
 """Main module."""
 
-def have_a_mice_day():
+def a():
     """Prints "Hello World!" to the console.
     """
-    print("Squeek Squeek!")
+    print("Squeek Squeek!!!!!!!!!!!!!!!!!!!!!!!")
