@@ -83,4 +83,4 @@ nav:
         - examples/intro.ipynb
     - API Reference:
           - pc_mouseparty module: pc_mouseparty.md
-          - common module: common.md
+          - test_functions module: test_functions.md
