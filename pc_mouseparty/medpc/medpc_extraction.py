@@ -4,14 +4,22 @@ import pandas as pd
 
 def medpc_txt2df(text_file_path):
     """
-    docstring
+    This function reads a medpc text data file into a pandas dataframe.
+
+    Args (2 total, 1 required):
+        par_1: 1D numpy array, Values observed in the field (counts).
+        par_2: int, default = 0, Additional value to add.
+
+    Return (1):
+        output_1 : str, The total sum as a string with a chosen suffix
+        added on.
     """
     # Open the medpc text file
     # with open(text_file_path, "r") as file: # use this for package
     with open(text_file_path.name) as file:  # use this for gradio app
         medpc_txt_file = file.read()
 
-    # split the file with each new line an element in a list    
+    # split the file with each new line an element in a list
     medpc_txt_file_lst = medpc_txt_file.split('\n')
 
     # remove all empty elements in the list
@@ -32,11 +40,11 @@ def medpc_txt2df(text_file_path):
                 temp = []
             result.append(item)
     if temp:
-        floats = [float(x) for x in re.findall(r'\d+\.\d+', 
+        floats = [float(x) for x in re.findall(r'\d+\.\d+',
                                                ''.join(temp))]
         result.append(floats)
 
-    # convert the list of lists and strings to 
+    # convert the list of lists and strings to
     # a dictionary with everything before ":"
     # as a key and everything after as the value
     result_dict = {}
@@ -65,9 +73,24 @@ def medpc_txt2df(text_file_path):
     # add list to dataframe
     df = pd.concat(pd_series_lst, axis=1)
     df.columns = result_dict.keys()
-    df.to_csv("medpc_converted_file.csv")
 
-    return (
-        # df.head(5).to_html(),
-        "medpc_converted_file.csv"
-        )
+    return (df)
+
+
+def cut_zeros(df):
+    """
+    This function removes all trailing zeros of the medpc dataframe.
+
+    Args (2 total, 1 required):
+        par_1: 1D numpy array, Values observed in the field (counts).
+        par_2: int, default = 0, Additional value to add.
+
+    Return (1):
+        output_1 : str, The total sum as a string with a chosen suffix
+        added on.
+    """
+    # find index of last row that does not only ahve 0 and Nan
+    last_idx = df[df.sum(axis=1).ne(0)].index[-1]
+    df = df[:last_idx+1]
+
+    return (df)
