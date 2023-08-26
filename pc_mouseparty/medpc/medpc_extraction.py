@@ -6,13 +6,11 @@ def medpc_txt2df(text_file_path):
     """
     This function reads a medpc text data file into a pandas dataframe.
 
-    Args (2 total, 1 required):
-        par_1: 1D numpy array, Values observed in the field (counts).
-        par_2: int, default = 0, Additional value to add.
+    Args (1 total, 1 required):
+        text_file_path : str, a path to a medpc text file as a string.
 
     Return (1):
-        output_1 : str, The total sum as a string with a chosen suffix
-        added on.
+        df : pandas dataframe, a dataframe with the medpc data.
     """
     # Open the medpc text file
     # with open(text_file_path, "r") as file: # use this for package
@@ -82,12 +80,11 @@ def cut_zeros(df):
     This function removes all trailing zeros of the medpc dataframe.
 
     Args (2 total, 1 required):
-        par_1: 1D numpy array, Values observed in the field (counts).
-        par_2: int, default = 0, Additional value to add.
+        df: pandas dataframe, a dataframe with the medpc data.
 
     Return (1):
-        output_1 : str, The total sum as a string with a chosen suffix
-        added on.
+        df : pandas dataframe, a dataframe with the medpc data
+        with trailing zeros removed.
     """
     # find index of last row that does not only ahve 0 and Nan
     last_idx = df[df.sum(axis=1).ne(0)].index[-1]
