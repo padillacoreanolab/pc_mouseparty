@@ -5,19 +5,20 @@ import re
 from collections import defaultdict
 from elorating import calculation
 
-# Suppress all warnings
 import warnings
 
+# Suppress all warnings
 warnings.filterwarnings("ignore")
 
 
-def _reward_competition(df, output_dir, plot_flag=True):
+def __reward_competition(df, cohort, output_dir, plot_flag=True):
     """
-    This private function takes in a dataframe and processes the elo score for reward
-    competition protocol
+    This private function takes in a dataframe and processes the elo score
+    for reward competition protocol
     Unedited used the reward_competition jupyter notebook
-    Args (3 total, 2 required):
+    Args (4 total, 3 required):
         df (pandas dataframe): dataframe to be processed
+        cohort (str): cohort name
         output_dir (str): path to output directory
         plot_flag (bool): flag to plot data, default True
 
@@ -31,82 +32,80 @@ def _reward_competition(df, output_dir, plot_flag=True):
 
     # removing columns from given list of strings
     to_remove = ["wins", "ties", "time"]
-    cols_to_keep = [col for col in df.columns if all(word not in col for word
-                                                     in to_remove)]
+    cols_to_keep = \
+        [col for col in df.columns if all(word not in col
+                                          for word in to_remove)]
     df = df[cols_to_keep]
     df["animal_ids"] = df["match"].apply(
-        lambda x: tuple(sorted([all_ids.strip() for all_ids in re.findall(r"[-+]?(?:\d*\.\d+|\d+)", x)])))
+        lambda x: tuple(sorted([all_ids.strip()
+                                for all_ids in
+                                re.findall(r"[-+]?(?:\d*\.\d+|\d+)", x)])))
     df["cohort"] = "TODO"
     cage_to_strain = {}
     df["strain"] = df["cage"].astype(str).map(cage_to_strain)
-    all_cages = "_".join([str(cage) for cage in sorted(df["cage"].unique())])
+    all_cages = "_".join([str(cage)
+                          for cage in sorted(df["cage"].unique())])
     df["index"] = df.index
     reward_competition_df = df.reset_index(drop=True)
 
-    melted_reward_competition_df = reward_competition_df.melt(
+    melted_rc_df = reward_competition_df.melt(
         id_vars=["index", "date", "cage", "box", "match", "animal_ids"],
         var_name="trial",
         value_name="winner")
 
-    melted_reward_competition_df = melted_reward_competition_df.dropna(
-        subset="winner")
-    melted_reward_competition_df["keep_row"] = \
-        melted_reward_competition_df["winner"].apply(
-            lambda x: True if "tie" in str(x).lower() or
-                              re.match(r'^-?\d+(?:\.\d+)$', str(x)) else False
+    melted_rc_df = melted_rc_df.dropna(subset="winner")
+    melted_rc_df["keep_row"] = melted_rc_df["winner"].apply(
+        lambda x: True if "tie" in str(x).lower() or
+                          re.match(r'^-?\d+(?:\.\d+)$', str(x)) else False
+    )
+
+    melted_rc_df = melted_rc_df[melted_rc_df["keep_row"]]
+
+    melted_rc_df["winner"] = melted_rc_df["winner"].astype(str).apply(
+        lambda x: x.lower().strip()
+    )
+
+    melted_rc_df["match_is_tie"] = melted_rc_df["winner"].apply(
+        lambda x: True if "tie" in x.lower().strip() else False
+    )
+
+    melted_rc_df["winner"] = \
+        melted_rc_df.apply(
+            lambda x: x["animal_ids"][0] if x["match_is_tie"]
+            else x["winner"], axis=1
         )
 
-    melted_reward_competition_df = \
-        melted_reward_competition_df[melted_reward_competition_df["keep_row"]]
+    melted_rc_df[melted_rc_df["match_is_tie"]]
 
-    melted_reward_competition_df["winner"] = \
-        melted_reward_competition_df["winner"].astype(str).apply(
-            lambda x: x.lower().strip()
-        )
+    melted_rc_df = \
+        melted_rc_df[melted_rc_df["trial"].str.contains('trial')]
 
-    melted_reward_competition_df["match_is_tie"] = \
-        melted_reward_competition_df["winner"].apply(
-            lambda x: True if "tie" in x.lower().strip() else False
-        )
+    melted_rc_df["trial_number"] = melted_rc_df["trial"].apply(
+        lambda x:
+        int(x.lower().strip("trial").strip("winner").strip("_"))
+    )
 
-    melted_reward_competition_df["winner"] = \
-        melted_reward_competition_df.apply(
-            lambda x: x["animal_ids"][0] if x["match_is_tie"] else x["winner"],
-            axis=1
-        )
+    melted_rc_df = melted_rc_df.sort_values(
+        ["index", "trial_number"]).reset_index(drop=True)
 
-    melted_reward_competition_df[melted_reward_competition_df["match_is_tie"]]
+    melted_rc_df["loser"] = melted_rc_df.apply(
+        lambda x:
+        (list(set(x["animal_ids"]) - set([x["winner"]]))[0]), axis=1
+    )
 
-    melted_reward_competition_df = melted_reward_competition_df[
-        melted_reward_competition_df["trial"].str.contains('trial')]
-
-    melted_reward_competition_df["trial_number"] = \
-        melted_reward_competition_df["trial"].apply(
-            lambda x: int(x.lower().strip("trial").strip("winner").strip("_"))
-        )
-
-    melted_reward_competition_df = \
-        melted_reward_competition_df.sort_values(
-            ["index", "trial_number"]).reset_index(drop=True)
-
-    melted_reward_competition_df["loser"] = melted_reward_competition_df.apply(
-        lambda x: (list(set(x["animal_ids"]) - set([x["winner"]]))[0]), axis=1)
-
-    melted_reward_competition_df["session_number_difference"] = \
-        melted_reward_competition_df["date"].astype(
-            'category').cat.codes.diff()
+    melted_rc_df["session_number_difference"] = \
+        melted_rc_df["date"].astype('category').cat.codes.diff()
 
     cage_to_elo_rating_dict = defaultdict(dict)
 
-    for cage in melted_reward_competition_df["cage"].unique():
-        cage_df = \
-            melted_reward_competition_df[melted_reward_competition_df["cage"] == cage]
+    for cage in melted_rc_df["cage"].unique():
+        cage_df = melted_rc_df[melted_rc_df["cage"] == cage]
         cage_to_elo_rating_dict[cage] = \
             calculation.iterate_elo_rating_calculation_for_dataframe(
                 dataframe=cage_df,
                 winner_id_column="winner",
                 loser_id_column="loser",
-                additional_columns=melted_reward_competition_df.columns,
+                additional_columns=melted_rc_df.columns,
                 tie_column="match_is_tie"
             )
 
@@ -115,72 +114,69 @@ def _reward_competition(df, output_dir, plot_flag=True):
     all_cage_elo_rating_list = []
 
     for key in cage_to_elo_rating_dict.keys():
-        cage_elo_rating_df = pd.DataFrame.from_dict(cage_to_elo_rating_dict[key], orient="index")
+        cage_elo_rating_df = \
+            pd.DataFrame.from_dict(
+                cage_to_elo_rating_dict[key], orient="index")
         cage_elo_rating_df.insert(
             0, 'total_trial_number', range(0, 0 + len(cage_elo_rating_df))
         )
 
         all_cage_elo_rating_list.append(cage_elo_rating_df)
 
-    all_cage_elo_rating_df = pd.concat(all_cage_elo_rating_list)
+    all_elo_df = pd.concat(all_cage_elo_rating_list)
 
-    all_cage_elo_rating_df[all_cage_elo_rating_df["match_is_tie"]]
+    all_elo_df[all_elo_df["match_is_tie"]]
 
     if cage_to_strain:
-        all_cage_elo_rating_df["strain"] = \
-            all_cage_elo_rating_df["cage"].astype(str).map(cage_to_strain)
+        all_elo_df["strain"] = \
+            all_elo_df["cage"].astype(str).map(cage_to_strain)
 
-    all_cage_elo_rating_df["experiment_type"] = "Reward Competition"
-    all_cage_elo_rating_df["cohort"] = "TODO"
-    all_cage_elo_rating_df[all_cage_elo_rating_df["win_draw_loss"] == 0.5]
+    all_elo_df["experiment_type"] = "Reward Competition"
+    all_elo_df["cohort"] = "TODO"
+    all_elo_df[all_elo_df["win_draw_loss"] == 0.5]
 
-    id_to_final_elo_rating_dict = defaultdict(dict)
-    sorted_func = enumerate(sorted(all_cage_elo_rating_df["subject_id"].unique()))
+    id_to_elo_dict = defaultdict(dict)
+    sorted_func = enumerate(sorted(all_elo_df["subject_id"].unique()))
     for index, subject_id in sorted_func:
-        per_subject_df = \
-            all_cage_elo_rating_df[
-                all_cage_elo_rating_df["subject_id"] == subject_id
-                ]
-        id_to_final_elo_rating_dict[index]["subject_id"] = subject_id
+        per_subject_df = all_elo_df[all_elo_df["subject_id"] == subject_id]
+        id_to_elo_dict[index]["subject_id"] = subject_id
 
-        id_to_final_elo_rating_dict[index]["final_elo_rating"] = \
+        id_to_elo_dict[index]["final_elo_rating"] = \
             per_subject_df.iloc[-1]["updated_elo_rating"]
-        id_to_final_elo_rating_dict[index]["cohort"] = \
-            per_subject_df.iloc[-1]["cohort"]
-        id_to_final_elo_rating_dict[index]["cage"] = \
-            per_subject_df.iloc[-1]["cage"]
+        id_to_elo_dict[index]["cohort"] = per_subject_df.iloc[-1]["cohort"]
+        id_to_elo_dict[index]["cage"] = per_subject_df.iloc[-1]["cage"]
 
-    id_to_final_elo_rating_df = pd.DataFrame.from_dict(
-        id_to_final_elo_rating_dict, orient="index"
+    id_to_elo_df = pd.DataFrame.from_dict(
+        id_to_elo_dict, orient="index"
     )
     # Adding protocol name
-    id_to_final_elo_rating_df["experiment_type"] = "Reward Competition"
+    id_to_elo_df["experiment_type"] = "Reward Competition"
     # Adding rank
-    id_to_final_elo_rating_df["rank"] = \
-        id_to_final_elo_rating_df.groupby("cage")["final_elo_rating"].rank(
+    id_to_elo_df["rank"] = \
+        id_to_elo_df.groupby("cage")["final_elo_rating"].rank(
             "dense", ascending=False
         )
     # Sorting by cage and then id
-    id_to_final_elo_rating_df = id_to_final_elo_rating_df.sort_values(
+    id_to_elo_df = id_to_elo_df.sort_values(
         by=['cage', "subject_id"], ascending=True).reset_index(drop=True)
-    id_to_final_elo_rating_df["rank"] = \
-        id_to_final_elo_rating_df.groupby("cage")["final_elo_rating"].rank(
+    id_to_elo_df["rank"] = \
+        id_to_elo_df.groupby("cage")["final_elo_rating"].rank(
             "dense", ascending=False
         )
-    id_to_final_elo_rating_df = \
-        id_to_final_elo_rating_df.sort_values(
-            by=['cage', "subject_id"], ascending=True).reset_index(drop=True)
+    id_to_elo_df = id_to_elo_df.sort_values(
+        by=['cage', "subject_id"], ascending=True).reset_index(drop=True)
 
     if plot_flag:
-        for cage in all_cage_elo_rating_df["cage"].unique():
+        for cage in all_elo_df["cage"].unique():
             fig, ax = plt.subplots()
             plt.rcParams["figure.figsize"] = (18, 10)
             per_cage_df = \
-                all_cage_elo_rating_df[all_cage_elo_rating_df["cage"] == cage]
+                all_elo_df[all_elo_df["cage"] == cage]
 
             for index in per_cage_df["index"].unique():
+                col = "total_trial_number"
                 first_session_in_trial = \
-                    per_cage_df[per_cage_df["index"] == index].iloc[0]["total_trial_number"]
+                    per_cage_df[per_cage_df["index"] == index].iloc[0][col]
                 plt.vlines(x=[first_session_in_trial - 0.5],
                            ymin=700,
                            ymax=1300,
@@ -191,7 +187,8 @@ def _reward_competition(df, output_dir, plot_flag=True):
             # Drawing a line for each subject
             for subject in sorted(per_cage_df["subject_id"].unique()):
                 # Getting all the rows with the current subject
-                subject_df = per_cage_df[per_cage_df["subject_id"] == subject]
+                col = "subject_id"
+                subject_df = per_cage_df[per_cage_df[col] == subject]
                 # Making the dates into days after the first session by
                 # subtracting all the dates by the first date
                 plt.plot(subject_df["total_trial_number"],
@@ -204,7 +201,9 @@ def _reward_competition(df, output_dir, plot_flag=True):
             ax.set_xlabel("Trial Number")
             ax.set_ylabel("Elo Score")
             ax.set_title(
-                "{} Elo Rating for {} {}".format("Rewards Competition", "TODO", str(cage)))
+                "{} Elo Rating for {} {}".format(
+                    "Rewards Competition", cohort, str(cage))
+            )
             # To show the legend
             ax.legend(loc="upper left")
             plt.xticks(rotation=90)
@@ -214,53 +213,49 @@ def _reward_competition(df, output_dir, plot_flag=True):
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
 
-            plt.savefig(
-                os.path.join(output_dir,
-                             "reward_competition_cage" + str(cage) + ".png"))
+            file_name = "reward_competition_cage" + str(cage) + ".png"
+            plt.savefig(os.path.join(output_dir, file_name))
 
-    path = os.path.join(
-        output_dir, "reward_competition_cage" + all_cages + ".csv")
+    file_name = "reward_competition_cage" + all_cages + ".csv"
+    path = os.path.join(output_dir, file_name)
 
-    id_to_final_elo_rating_df.to_csv(path, index=False)
+    id_to_elo_df.to_csv(path, index=False)
 
     return None
 
-def general_processing(file_info, output_dir, plot_flag=True):
-    """
-        This function takes in a dataframe and processes elo score for home_cage_observation, urine_marking,
-        or test_tube protocols
-        Args (3 total, 3 required):
-            file_info (dict): dictionary with file names as key and value as a dictionary of
-            file information with the following properties:
-                file_path (str): path to file
-                protocol (str): protocol name
-                sheet (list): list of sheet names
-                cohort (str): cohort name
+def __process(df, protocol, cohort, sheet, output_dir, plot_flag=True):
+        """
+        This private function takes in a dataframe and processes the elo score
+        for home_cage_observation, urine_marking, or test_tube protocols
+        Args (6 total, 5 required):
+            df (pandas dataframe): dataframe to be processed
+            protocol (str): protocol name
+            cohort (str): cohort name
+            sheet (str): sheet name
             output_dir (str): path to output directory
             plot_flag (bool): flag to plot data, default True
-
         Return(None):
             None
-    """
-    def process(df, protocol, cohort, output_dir, plot_flag):
+        """
         # Initializing column names
 
-        find_col_names = df[df.apply(lambda row: 'winner' in row.values, axis=1)]
+        find_col_names = df[df.apply(
+            lambda row: 'winner' in row.values, axis=1)]
 
         if not find_col_names.empty:
             df.columns = find_col_names.iloc[0]
             df = df[df.index != find_col_names.index[0]]
 
         # check if there is a cage number col
-        mode_cage_val = None
+        mode_cage = None
         cage_num = False
         # finding column names for winner, loser, and tie
         winner_col, tie_col, loser_col = None, None, None
         for col in df.columns.tolist():
             if "cage" in col.lower():
                 # filling all cage values with mode
-                mode_cage_val = df['cage #'].mode().iloc[0]
-                df['cage#'] = mode_cage_val
+                mode_cage = df['cage #'].mode().iloc[0]
+                df['cage#'] = mode_cage
                 cage_num = True
             if "winner" in col.lower():
                 winner_col = col
@@ -276,9 +271,9 @@ def general_processing(file_info, output_dir, plot_flag=True):
         if not cage_num:
             try:
                 new_sheet_name = sheet.lower().replace("cage", "")
-                mode_cage_val = int(new_sheet_name)
-                df['cage#'] = mode_cage_val
-            except:
+                mode_cage = int(new_sheet_name)
+                df['cage#'] = mode_cage
+            except ValueError:
                 print("Cage# cannot be determined")
                 return None
 
@@ -304,16 +299,20 @@ def general_processing(file_info, output_dir, plot_flag=True):
         if tie_col:
             df[tie_col] = df[tie_col].notna()
 
-        elo_calc = calculation.iterate_elo_rating_calculation_for_dataframe(dataframe=df, winner_id_column=winner_col,
-                                                                            loser_id_column=loser_col,
-                                                                            tie_column=tie_col)
+        elo_calc = calculation.iterate_elo_rating_calculation_for_dataframe(
+            dataframe=df, winner_id_column=winner_col,
+            loser_id_column=loser_col,
+            tie_column=tie_col
+        )
         elo_df = pd.DataFrame.from_dict(elo_calc, orient='index')
         elo_df.groupby("subject_id").count()
 
         cage_to_strain = {}
         if cage_to_strain:
-            elo_df["subject_strain"] = elo_df["cage_num_of_subject"].map(cage_to_strain)
-            elo_df["agent_strain"] = elo_df["cage_num_of_agent"].map(cage_to_strain)
+            elo_df["subject_strain"] = \
+                elo_df["cage_num_of_subject"].map(cage_to_strain)
+            elo_df["agent_strain"] = \
+                elo_df["cage_num_of_agent"].map(cage_to_strain)
         elo_df["experiment_type"] = protocol
         elo_df["cohort"] = cohort
 
@@ -328,32 +327,60 @@ def general_processing(file_info, output_dir, plot_flag=True):
             fig, ax = plt.subplots()
 
             # adjusting session number difference
-            elo_df['session_number_difference'] = \
-                df['session_number_difference'].repeat(2).reset_index(drop=True)
+            col = "session_number_difference"
+            elo_df[col] = df[col].repeat(2).reset_index(drop=True)
 
-            for index, row in elo_df[elo_df['session_number_difference'].astype(bool)].iterrows():
+            for index, row in elo_df[elo_df[col].astype(bool)].iterrows():
                 # Offsetting by 0.5 to avoid drawing the line on the dot
-                # Drawing the lines a little above the max and a little below the minimum
-                plt.vlines(x=[row["total_match_number"] - 0.5], ymin=min_elo_rating - 50, ymax=max_elo_rating + 50,
-                           colors='black', linestyle='dashed')
+                # Drawing the lines above the max and below the minimum
+                plt.vlines(x=[row["total_match_number"] - 0.5],
+                           ymin=min_elo_rating - 50,
+                           ymax=max_elo_rating + 50,
+                           colors='black',
+                           linestyle='dashed')
             for subject in sorted(elo_df["subject_id"].unique()):
                 # Getting all the rows with the current subject
                 subject_dataframe = elo_df[elo_df["subject_id"] == subject]
                 # Making the current match number the X-Axis
-                plt.plot(subject_dataframe["total_match_number"], subject_dataframe["updated_elo_rating"], '-o',
+                plt.plot(subject_dataframe["total_match_number"],
+                         subject_dataframe["updated_elo_rating"],
+                         '-o',
                          label=subject)
                 # plt.show()
             ax.set_xlabel("Trial Number")
             ax.set_ylabel("Elo rating")
 
-            ax.set_title(
-                "{} Elo Rating for {} {}".format(protocol, cohort, "Cage #" + str(mode_cage_val)))
+            tite = "{} Elo Rating for {} {}".format(protocol,
+                                                    cohort,
+                                                    "Cage #" + str(mode_cage))
+            ax.set_title(tite)
             ax.legend(loc="upper left")
             plt.ylim(min_elo_rating - 50, max_elo_rating + 50)
-            fig.savefig(os.path.join(output_dir, protocol + "_cage" + str(mode_cage_val) + ".png"))
+            file_name = protocol + "_cage" + str(mode_cage) + ".png"
+            fig.savefig(os.path.join(output_dir, file_name))
 
         # Saving df csv to output dir
-        elo_df.to_csv(os.path.join(output_dir, protocol + "_cage" + str(mode_cage_val) + ".csv"), index=False)
+        file_name = protocol + "_cage" + str(mode_cage) + ".csv"
+        elo_df.to_csv(os.path.join(output_dir, file_name), index=False)
+
+def generate_elo_scores(file_info, output_dir, plot_flag=True):
+    """
+        This function takes in a dataframe and processes elo score for
+        home_cage_observation, urine_marking, or test_tube protocols
+        Args (3 total, 3 required):
+            file_info (dict):
+                dictionary with file names as key and value as a dictionary of
+                file information with the following properties:
+                    file_path (str): path to file
+                    protocol (str): protocol name
+                    sheet (list): list of sheet names
+                    cohort (str): cohort name
+            output_dir (str): path to output directory
+            plot_flag (bool): flag to plot data, default True
+
+        Return(None):
+            None
+    """
 
     for file_name, file_data in file_info.items():
         file_path = file_data["file_path"]
@@ -364,6 +391,14 @@ def general_processing(file_info, output_dir, plot_flag=True):
         for sheet in sheets:
             data = pd.read_excel(xls, sheet_name=sheet)
             if protocol == "reward_competition":
-                _reward_competition(df=data, output_dir=output_dir, plot_flag=plot_flag)
+                __reward_competition(df=data,
+                                     cohort=cohort,
+                                     output_dir=output_dir,
+                                     plot_flag=plot_flag)
             else:
-                process(df=data, protocol=protocol, cohort=cohort, output_dir=output_dir, plot_flag=plot_flag)
+                __process(df=data,
+                          protocol=protocol,
+                          cohort=cohort,
+                          sheet=sheet,
+                          output_dir=output_dir,
+                          plot_flag=plot_flag)
