@@ -45,6 +45,8 @@ def compute_sorted_index(group, value_column='Value', index_column='SortedIndex'
     return group
 
 #reformatting
+
+#megans event dict = leo tone timestamp
 def reformat_df():
     all_trials_df = TONE_TIMESTAMP_DF.dropna(subset="condition").reset_index(drop=True)
     sorted(all_trials_df["recording_dir"].unique())
@@ -73,11 +75,14 @@ def reformat_df():
     all_trials_df["competition_closeness"] = all_trials_df.apply(lambda x: "_".join([str(x["trial_outcome"]), str(x["competition_closeness"])]).strip("nan").strip("_"), axis=1)
     all_trials_df["competition_closeness"].unique()
 
+
+    #STANDARDIZED STARTS HERE
     all_trials_df["lfp_index"] = (all_trials_df["time_stamp_index"] // (EPHYS_SAMPLING_RATE/LFP_SAMPLING_RATE)).astype(int)
 
     all_trials_df["time"] = all_trials_df["time"].astype(int)
     all_trials_df["time_stamp_index"] = all_trials_df["time_stamp_index"].astype(int)
 
+    #ECU SPECIFIC does not need to happen
     all_trials_df = all_trials_df.drop(columns=["state", "din", "condition", "Unnamed: 13"], errors="ignore")
 
     #handleing time stamps
@@ -95,6 +100,7 @@ def reformat_df():
     all_trials_df["trial_videoframe_range"] = all_trials_df["video_frame"].apply(
         lambda x: (x, x + TRIAL_DURATION * FRAME_RATE))
     return all_trials_df
+
 
 all_trials_df = reformat_df()
 
@@ -117,6 +123,7 @@ def extract_lfp():
                 current_recording = sp.bandpass_filter(current_recording, freq_min=LFP_FREQ_MIN, freq_max=LFP_FREQ_MAX)
                 current_recording = sp.notch_filter(current_recording, freq=ELECTRIC_NOISE_FREQ)
                 current_recording = sp.resample(current_recording, resample_rate=LFP_SAMPLING_RATE)
+                # Z-scoring the LFP
                 current_recording = sp.zscore(current_recording) # zscore single because avg across animals is in same scale
                 recording_name_to_all_ch_lfp[recording_basename] = current_recording
             except Exception as error:
@@ -131,6 +138,7 @@ all_trials_df = all_trials_df.groupby('recording_file').apply(lambda g: compute_
 all_trials_df["trial_number"] = all_trials_df["trial_number"] + 1
 
 #adding the LFP trace information
+#todo: make function
 CHANNEL_MAPPING_DF["Subject"] = CHANNEL_MAPPING_DF["Subject"].astype(str)
 channel_map_and_all_trials_df = all_trials_df.merge(CHANNEL_MAPPING_DF, left_on="current_subject", right_on="Subject", how="left")
 channel_map_and_all_trials_df = channel_map_and_all_trials_df.drop(columns=[col for col in channel_map_and_all_trials_df.columns if "eib" in col], errors="ignore")
@@ -138,12 +146,14 @@ channel_map_and_all_trials_df = channel_map_and_all_trials_df.drop(columns=["Sub
 channel_map_and_all_trials_df.to_csv("./proc/trial_metadata.csv")
 channel_map_and_all_trials_df.to_pickle("./proc/trial_metadata.pkl")
 
+#subsampling and channel mapping would be functions of ephys coillection
 #link lfp to trials
 channel_map_and_all_trials_df["all_ch_lfp"] = channel_map_and_all_trials_df["recording_file"].map(recording_name_to_all_ch_lfp)
 #new row for brain region
 brain_region_col = [col for col in CHANNEL_MAPPING_DF if "spike_interface" in col]
 id_cols = [col for col in channel_map_and_all_trials_df.columns if col not in brain_region_col]
 for col in brain_region_col:
+    # object stuff for ecu specific
     channel_map_and_all_trials_df[col] = channel_map_and_all_trials_df[col].astype(int).astype(str)
     channel_map_and_all_trials_df["{}_baseline_lfp_trace".format(col.strip("spike_interface").strip("_"))] = channel_map_and_all_trials_df.apply(lambda row: row["all_ch_lfp"].get_traces(channel_ids=[row[col]], start_frame=row["baseline_lfp_timestamp_range"][0], end_frame=row["baseline_lfp_timestamp_range"][1]).T[0], axis=1)
     channel_map_and_all_trials_df["{}_trial_lfp_trace".format(col.strip("spike_interface").strip("_"))] = channel_map_and_all_trials_df.apply(lambda row: row["all_ch_lfp"].get_traces(channel_ids=[row[col]], start_frame=row["trial_lfp_timestamp_range"][0], end_frame=row["trial_lfp_timestamp_range"][1]).T[0], axis=1)
