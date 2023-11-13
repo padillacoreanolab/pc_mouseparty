@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import re
 from collections import defaultdict
-from elorating import calculation
+from pc_mouseparty.rank import calculation
 
 import warnings
 
