@@ -20,10 +20,10 @@
 -   How to update a release:
     1. create a conda environment with dependencies in requirements_dev.txt
     2. activate environment to make use of bump2version
-    3. pull latest amster branch and have it checked out
+    3. pull latest master branch and have it checked out
     4. run `bumpversion <major/minor/patch>` (to set a specific version use `bumpversion --new-version <major#.minor#.patch#> <major/minor/patch>`)
     5. run `git push --tags`
-    6. run `git push` to push the master branch to origin or just push the mster to origin using a git client
+    6. run `git push` to push the master branch to origin or just push the master to origin using a git client
     7. Go to github and use tags menu to create and publish a new release
 
     GH-Repo Docs
