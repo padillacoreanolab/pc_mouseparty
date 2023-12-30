@@ -197,7 +197,11 @@ def iterate_elo_rating_calculation_for_dataframe(dataframe,
                           loser_score=loser_score)
 
         # Saving all the data for the winner
-        winner_index = next(all_indexes)
+        try: 
+            winner_index = next(all_indexes)
+        except StopIteration:
+            print("There are more than 99999 rows in the dataframe. ")
+            continue
         elo_metadata[winner_index]["total_match_number"] = total_match_number
         elo_metadata[winner_index]["subject_id"] = winner_id
         elo_metadata[winner_index]["agent_id"] = loser_id
@@ -214,8 +218,12 @@ def iterate_elo_rating_calculation_for_dataframe(dataframe,
         for column in additional_columns:
             elo_metadata[winner_index][column] = rw[column]
 
-            # Saving all the data for the loser
-        loser_index = next(all_indexes)
+        # Saving all the data for the loser
+        try:
+            loser_index = next(all_indexes)
+        except StopIteration:
+            print("There are more than 99999 rows in the dataframe. ")
+            continue
         elo_metadata[loser_index]["total_match_number"] = total_match_number
         elo_metadata[loser_index]["subject_id"] = loser_id
         elo_metadata[loser_index]["agent_id"] = winner_id

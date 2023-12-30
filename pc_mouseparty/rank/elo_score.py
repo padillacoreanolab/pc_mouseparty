@@ -346,7 +346,6 @@ def __process(df, protocol, cohort, sheet, output_dir, plot_flag=True):
                      subject_dataframe["updated_elo_rating"],
                      '-o',
                      label=subject)
-            # plt.show()
         ax.set_xlabel("Trial Number")
         ax.set_ylabel("Elo rating")
 
