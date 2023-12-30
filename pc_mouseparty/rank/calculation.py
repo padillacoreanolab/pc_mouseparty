@@ -8,19 +8,24 @@ from collections import defaultdict
 import pandas as pd
 
 
-def calculate_elo_rating(subject_elo_rating, agent_elo_rating, k_factor=20, score=1, number_of_decimals=1):
+def calculate_elo_rating(subject_elo_rating,
+                         agent_elo_rating,
+                         k_factor=20, score=1,
+                         number_of_decimals=1):
     """
-    Calculates the Elo rating of a given subject given it's original score, it's opponent,
-    the K-Factor, and whether or not it has won or not.
+    Calculates the Elo rating of a given subject given it's original score,
+    it's opponent, the K-Factor, and whether or not it has won or not.
     The calculation is based on: https://www.omnicalculator.com/sports/elo
 
     Args:
         subject_elo_rating(float): The original Elo rating for the subject
         agent_elo_rating(float): The original Elo rating for the agent
         k_factor(int): k-factor, or development coefficient.
-            - It usually takes values between 10 and 40, depending on player's strength
+            - It usually takes values between 10 and 40, depending on
+            player's strength
         score(int): the actual outcome of the game.
-            - In chess, a win counts as 1 point, a draw is equal to 0.5, and a lose gives 0.
+            - In chess, a win counts as 1 point, a draw is equal to 0.5,
+            and a lose gives 0.
         number_of_decimals(int): Number of decimals to round to
 
     Returns:
@@ -34,21 +39,30 @@ def calculate_elo_rating(subject_elo_rating, agent_elo_rating, k_factor=20, scor
     return round(new_elo_rating, number_of_decimals)
 
 
-def update_elo_rating(winner_id, loser_id, id_to_elo_rating=None, default_elo_rating=1000, \
-                      winner_score=1, loser_score=0, **calculate_elo_rating_params):
+def update_elo_rating(winner_id,
+                      loser_id,
+                      id_to_elo_rating=None,
+                      default_elo_rating=1000,
+                      winner_score=1,
+                      loser_score=0,
+                      **calculate_elo_rating_params):
     """
-    Updates the Elo rating in a dictionary that contains the ID of the subject as keys,
-    and the Elo rating as the values. You can also adjust how the Elo rating is calculated with 'calculate_elo_rating_params'.
+    Updates the Elo rating in a dictionary that contains the ID of the subject
+    as keys, and the Elo rating as the values. You can also adjust how the Elo
+    rating is calculated with 'calculate_elo_rating_params'.
 
     Args:
         winner_id(str): ID of the winner
         loser_id(str): ID of the loser
-        id_to_elo_rating(dict): Dict that has the ID of the subjects as keys to the Elo Score as values
-        default_elo_rating(int): The default Elo rating to be used if there is not elo score for the specified ID
-        **calculate_elo_rating_params(kwargs): Other params for the calculate_elo_rating to change how the Elo rating is calculated
+        id_to_elo_rating(dict): Dict that has the ID of the subjects as keys
+            to the Elo Score as values
+        default_elo_rating(int): The default Elo rating to be used if there is
+            not elo score for the specified ID
+        **calculate_elo_rating_params(kwargs): Other params for the
+            calculate_elo_rating to change how the Elo rating is calculated
 
     Returns:
-        Dict: Dict that has the ID of the subjects as keys to the Elo Score as values
+        Dict: Dict that has the subjects IDs (keys) to the Elo Score as vals
     """
     if id_to_elo_rating is None:
         id_to_elo_rating = defaultdict(lambda: default_elo_rating)
@@ -58,12 +72,17 @@ def update_elo_rating(winner_id, loser_id, id_to_elo_rating=None, default_elo_ra
     current_loser_rating = id_to_elo_rating[loser_id]
 
     # Calculating Elo rating
-    id_to_elo_rating[winner_id] = calculate_elo_rating(subject_elo_rating=current_winner_rating, \
-                                                       agent_elo_rating=current_loser_rating, score=winner_score,
-                                                       **calculate_elo_rating_params)
-    id_to_elo_rating[loser_id] = calculate_elo_rating(subject_elo_rating=current_loser_rating, \
-                                                      agent_elo_rating=current_winner_rating, score=loser_score,
-                                                      **calculate_elo_rating_params)
+    id_to_elo_rating[winner_id] = calculate_elo_rating(
+        subject_elo_rating=current_winner_rating,
+        agent_elo_rating=current_loser_rating,
+        score=winner_score,
+        **calculate_elo_rating_params)
+
+    id_to_elo_rating[loser_id] = \
+        calculate_elo_rating(subject_elo_rating=current_loser_rating,
+                             agent_elo_rating=current_winner_rating,
+                             score=loser_score,
+                             **calculate_elo_rating_params)
 
     return id_to_elo_rating
 
@@ -72,7 +91,8 @@ def get_ranking_from_elo_rating_dictionary(input_dict, subject_id):
     """
     Orders a dictionary of subject ID keys to ELO score values by ELO score.
     And then gets the rank of the subject with the inputted ID.
-    Lower ranks like 1 would represent those subjects with higher ELO scores and vice versa.
+    Lower ranks like 1 would represent those subjects with higher ELO scores
+    and vice versa.
 
     Args:
         input_dict(dict):
@@ -85,17 +105,26 @@ def get_ranking_from_elo_rating_dictionary(input_dict, subject_id):
             Ranking of the subject with the ID inputted
     """
     # Sorting the subject ID's by ELO score
-    sorted_subject_to_elo_rating = sorted(input_dict.items(), key=operator.itemgetter(1), reverse=True)
+    sorted_elo = sorted(input_dict.items(),
+                        key=operator.itemgetter(1),
+                        reverse=True)
     # Getting the rank of the subject based on ELO score
-    return [subject_tuple[0] for subject_tuple in sorted_subject_to_elo_rating].index(subject_id) + 1
+    rank = [subject_tuple[0] for subject_tuple in sorted_elo].index(subject_id)
+    rank += 1
+    return rank
 
 
-def iterate_elo_rating_calculation_for_dataframe(dataframe, winner_id_column, loser_id_column, tie_column=None,
+def iterate_elo_rating_calculation_for_dataframe(dataframe,
+                                                 winner_id_column,
+                                                 loser_id_column,
+                                                 tie_column=None,
                                                  additional_columns=None):
     """
-    Iterates through a dataframe that has the ID of winners and losers for a given event.
+    Iterates through a dataframe that has the ID of winners and losers for
+    a given event.
     A dictionary will be created that contains the information of the event,
-    which can then be turned into a dataframe. Each key is either from winner or loser's perspective.
+    which can then be turned into a dataframe. Each key is either from winner
+    or loser's perspective.
 
     Args:
         dataframe(Pandas DataFrame):
@@ -104,8 +133,10 @@ def iterate_elo_rating_calculation_for_dataframe(dataframe, winner_id_column, lo
         additional_columns(list): Additional columns to take from the
 
     Returns:
-        Dict: With a key value pair for each event either from the winner or loser's perspective.
-            This can be turned into a dataframe with each key value pair being a row.
+        Dict: With a key value pair for each event either from the winner or
+        loser's perspective.
+            This can be turned into a dataframe with each key value pair being
+            a row.
     """
     if additional_columns is None:
         additional_columns = []
@@ -113,29 +144,30 @@ def iterate_elo_rating_calculation_for_dataframe(dataframe, winner_id_column, lo
     # Dictionary that keeps track of the current Elo rating of the subject
     id_to_elo_rating = defaultdict(lambda: 1000)
     # Dictionary that will be converted to a DataFrame
-    index_to_elo_rating_and_meta_data = defaultdict(dict)
+    elo_metadata = defaultdict(dict)
 
-    # Indexes that will identify which row the dictionary key value pair will be
-    # The number of the index has no significance other than being the number of the row
+    # Indexes that will identify which row the dictionary key value pair
+    # The num of index has no significance other than being the number of row
     all_indexes = iter(range(0, 99999))
 
     # Keeping track of the number of matches
     total_match_number = 1
 
-    # Making a copy in case there is an error with changing the type of the tie column
+    # Making a copy in case there is an error with changing the type of the tie
     copied_dataframe = dataframe.copy()
     # Changing the tie column type to bool
     # So that we can filter out for booleans including False and 0
     try:
-        copied_dataframe[tie_column] = copied_dataframe[tie_column].astype(bool)
-    except:
+        copied_dataframe[tie_column] = \
+            copied_dataframe[tie_column].astype(bool)
+    except KeyError:
         copied_dataframe = dataframe.copy()
 
-    for index, row in copied_dataframe.dropna(subset=winner_id_column).iterrows():
+    for idx, rw in copied_dataframe.dropna(subset=winner_id_column).iterrows():
         # Getting the ID of the winner subject
-        winner_id = row[winner_id_column]
+        winner_id = rw[winner_id_column]
         # Getting the ID of the loser subject
-        loser_id = row[loser_id_column]
+        loser_id = rw[loser_id_column]
 
         # Getting the current Elo Score
         current_winner_rating = id_to_elo_rating[winner_id]
@@ -144,7 +176,8 @@ def iterate_elo_rating_calculation_for_dataframe(dataframe, winner_id_column, lo
         if tie_column:
             # When there is nothing in the tie column
             # Or when there is a false value indicating that it is not a tie
-            if pd.isna(copied_dataframe[tie_column][index]) or ~(copied_dataframe[tie_column][index]).any():
+            if (pd.isna(copied_dataframe[tie_column][idx]) or
+                    ~(copied_dataframe[tie_column][idx]).any()):
                 winner_score = 1
                 loser_score = 0
             # When there is value in the tie column
@@ -157,42 +190,56 @@ def iterate_elo_rating_calculation_for_dataframe(dataframe, winner_id_column, lo
             loser_score = 0
 
         # Updating the dictionary with ID keys and Elo Score values
-        update_elo_rating(winner_id=winner_id, loser_id=loser_id, id_to_elo_rating=id_to_elo_rating, \
-                          winner_score=winner_score, loser_score=loser_score)
+        update_elo_rating(winner_id=winner_id,
+                          loser_id=loser_id,
+                          id_to_elo_rating=id_to_elo_rating,
+                          winner_score=winner_score,
+                          loser_score=loser_score)
 
         # Saving all the data for the winner
-        winner_index = next(all_indexes)
-        index_to_elo_rating_and_meta_data[winner_index]["total_match_number"] = total_match_number
-        index_to_elo_rating_and_meta_data[winner_index]["subject_id"] = winner_id
-        index_to_elo_rating_and_meta_data[winner_index]["agent_id"] = loser_id
-        index_to_elo_rating_and_meta_data[winner_index]["original_elo_rating"] = current_winner_rating
-        index_to_elo_rating_and_meta_data[winner_index]["updated_elo_rating"] = id_to_elo_rating[winner_id]
-        index_to_elo_rating_and_meta_data[winner_index]["win_draw_loss"] = winner_score
-        index_to_elo_rating_and_meta_data[winner_index]["subject_ranking"] = get_ranking_from_elo_rating_dictionary(
-            id_to_elo_rating, winner_id)
-        index_to_elo_rating_and_meta_data[winner_index]["agent_ranking"] = get_ranking_from_elo_rating_dictionary(
-            id_to_elo_rating, loser_id)
-        index_to_elo_rating_and_meta_data[winner_index]["pairing_index"] = 0
+        try:
+            winner_index = next(all_indexes)
+        except StopIteration:
+            print("There are more than 99999 rows in the dataframe. ")
+            continue
+        elo_metadata[winner_index]["total_match_number"] = total_match_number
+        elo_metadata[winner_index]["subject_id"] = winner_id
+        elo_metadata[winner_index]["agent_id"] = loser_id
+        elo_metadata[winner_index]["original_elo_rating"] = \
+            current_winner_rating
+        elo_metadata[winner_index]["updated_elo_rating"] = \
+            id_to_elo_rating[winner_id]
+        elo_metadata[winner_index]["win_draw_loss"] = winner_score
+        elo_metadata[winner_index]["subject_ranking"] = \
+            get_ranking_from_elo_rating_dictionary(id_to_elo_rating, winner_id)
+        elo_metadata[winner_index]["agent_ranking"] = \
+            get_ranking_from_elo_rating_dictionary(id_to_elo_rating, loser_id)
+        elo_metadata[winner_index]["pairing_index"] = 0
         for column in additional_columns:
-            index_to_elo_rating_and_meta_data[winner_index][column] = row[column]
+            elo_metadata[winner_index][column] = rw[column]
 
-            # Saving all the data for the loser
-        loser_index = next(all_indexes)
-        index_to_elo_rating_and_meta_data[loser_index]["total_match_number"] = total_match_number
-        index_to_elo_rating_and_meta_data[loser_index]["subject_id"] = loser_id
-        index_to_elo_rating_and_meta_data[loser_index]["agent_id"] = winner_id
-        index_to_elo_rating_and_meta_data[loser_index]["original_elo_rating"] = current_loser_rating
-        index_to_elo_rating_and_meta_data[loser_index]["updated_elo_rating"] = id_to_elo_rating[loser_id]
-        index_to_elo_rating_and_meta_data[loser_index]["win_draw_loss"] = loser_score
-        index_to_elo_rating_and_meta_data[loser_index]["subject_ranking"] = get_ranking_from_elo_rating_dictionary(
-            id_to_elo_rating, loser_id)
-        index_to_elo_rating_and_meta_data[loser_index]["agent_ranking"] = get_ranking_from_elo_rating_dictionary(
-            id_to_elo_rating, winner_id)
-        index_to_elo_rating_and_meta_data[loser_index]["pairing_index"] = 1
+        # Saving all the data for the loser
+        try:
+            loser_index = next(all_indexes)
+        except StopIteration:
+            print("There are more than 99999 rows in the dataframe. ")
+            continue
+        elo_metadata[loser_index]["total_match_number"] = total_match_number
+        elo_metadata[loser_index]["subject_id"] = loser_id
+        elo_metadata[loser_index]["agent_id"] = winner_id
+        elo_metadata[loser_index]["original_elo_rating"] = current_loser_rating
+        elo_metadata[loser_index]["updated_elo_rating"] = \
+            id_to_elo_rating[loser_id]
+        elo_metadata[loser_index]["win_draw_loss"] = loser_score
+        elo_metadata[loser_index]["subject_ranking"] = \
+            get_ranking_from_elo_rating_dictionary(id_to_elo_rating, loser_id)
+        elo_metadata[loser_index]["agent_ranking"] = \
+            get_ranking_from_elo_rating_dictionary(id_to_elo_rating, winner_id)
+        elo_metadata[loser_index]["pairing_index"] = 1
         for column in additional_columns:
-            index_to_elo_rating_and_meta_data[loser_index][column] = row[column]
+            elo_metadata[loser_index][column] = rw[column]
 
             # Updating the match number
         total_match_number += 1
 
-    return index_to_elo_rating_and_meta_data
+    return elo_metadata
