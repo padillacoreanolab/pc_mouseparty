@@ -54,7 +54,7 @@ def medpc_txt2df(text_file_path):
             if not value:
                 value = result[result.index(item)+1]
             result_dict[key] = value
-        elif type(item) == str:
+        elif type(item) is str:
             result_dict[item] = []
 
     # convert the dictionary to a dataframe

@@ -91,9 +91,9 @@ def save_behavior_bouts(directory, boris_df, subject, behavior, min_bout=0,
     bouts_array = get_behavior_bouts(boris_df, subject,
                                      behavior, min_bout, min_iti)
     if filename is None:
-        if type(subject) == list:
+        if type(subject) is list:
             subject = '_'.join(subject)
-        if type(behavior) == list:
+        if type(behavior) is list:
             behavior = '_'.join(behavior)
         subject = subject.replace(" ", "")
         behavior = behavior.replace(" ", "")
