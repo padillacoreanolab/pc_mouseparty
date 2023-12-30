@@ -349,10 +349,9 @@ def __process(df, protocol, cohort, sheet, output_dir, plot_flag=True):
         ax.set_xlabel("Trial Number")
         ax.set_ylabel("Elo rating")
 
-        tite = "{} Elo Rating for {} {}".format(protocol,
-                                                cohort,
-                                                "Cage #" + str(mode_cage))
-        ax.set_title(tite)
+        title = f"{protocol} Elo Rating for {cohort} Cage #{mode_cage}"
+
+        ax.set_title(title)
         ax.legend(loc="upper left")
         plt.ylim(min_elo_rating - 50, max_elo_rating + 50)
         file_name = protocol + "_cage" + str(mode_cage) + ".png"

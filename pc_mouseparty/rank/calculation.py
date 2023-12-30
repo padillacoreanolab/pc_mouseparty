@@ -197,7 +197,7 @@ def iterate_elo_rating_calculation_for_dataframe(dataframe,
                           loser_score=loser_score)
 
         # Saving all the data for the winner
-        try: 
+        try:
             winner_index = next(all_indexes)
         except StopIteration:
             print("There are more than 99999 rows in the dataframe. ")
