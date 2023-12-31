@@ -17,7 +17,6 @@ def threshold_bouts(start_stop_array, min_iti, min_bout):
         start_stop_array: numpy array (ndim=(n bouts, 2))
             of start&stop times (ms)
     """
-
     start_stop_array = np.sort(start_stop_array.flatten())
     times_to_delete = []
     if min_iti > 0:
@@ -61,7 +60,7 @@ def get_behavior_bouts(boris_df, subject, behavior, min_iti=0, min_bout=0):
             start_stop_array = behavior_df[['Start (s)',
                                             'Stop (s)']].to_numpy()
             start_stop_arrays.append(threshold_bouts(start_stop_array,
-                                                     min_bout, min_iti))
+                                                     min_iti, min_bout))
     start_stop_array = np.concatenate(start_stop_arrays)
     organizer = np.argsort(start_stop_array[:, 0])
     start_stop_array = start_stop_array[organizer]
@@ -89,7 +88,7 @@ def save_behavior_bouts(directory, boris_df, subject, behavior, min_bout=0,
         none
     """
     bouts_array = get_behavior_bouts(boris_df, subject,
-                                     behavior, min_bout, min_iti)
+                                     behavior, min_iti, min_bout)
     if filename is None:
         if type(subject) is list:
             subject = '_'.join(subject)

@@ -364,24 +364,23 @@ def __process(df, protocol, cohort, sheet, output_dir, plot_flag=True):
 
 def generate_elo_scores(file_info, output_dir, plot_flag=True):
     """
-        This function takes in a dataframe and processes elo score for
-        home_cage_observation, urine_marking, or test_tube protocols
-        Args (3 total, 3 required):
-            file_info (dict):
-                dictionary with file names as key and value as a dictionary of
-                file information with the following properties:
-                    file_path (str): path to file
-                    protocol (str): protocol name
-                    sheet (list): list of sheet names
-                    cohort (str): cohort name
-            output_dir (str): path to output directory
-            plot_flag (bool): flag to plot data, default True
+    This function takes in a dataframe and processes elo score for
+    home_cage_observation, urine_marking, or test_tube protocols
+    Args (3 total, 3 required):
+        file_info (dict):
+            dictionary with file names as key and value as a dictionary of
+            file information with the following properties:
+                file_path (str): path to file
+                protocol (str): protocol name
+                sheet (list): list of sheet names
+                cohort (str): cohort name
+        output_dir (str): path to output directory
+        plot_flag (bool): flag to plot data, default True
 
-        Return(None):
-            None
+    Return(None):
+        None
     """
-
-    for file_name, file_data in file_info.items():
+    for file_data in file_info.values():
         file_path = file_data["file_path"]
         protocol = file_data["protocol"]
         sheets = file_data["sheet"]

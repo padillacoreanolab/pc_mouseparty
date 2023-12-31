@@ -14,7 +14,8 @@ def medpc_txt2df(text_file_path):
     """
     # Open the medpc text file
     # with open(text_file_path, "r") as file: # use this for package
-    with open(text_file_path.name) as file:  # use this for gradio app
+    # with open(text_file_path.name) as file: # use this for gradio app
+    with open(text_file_path, "r") as file:
         medpc_txt_file = file.read()
 
     # split the file with each new line an element in a list
@@ -72,7 +73,7 @@ def medpc_txt2df(text_file_path):
     df = pd.concat(pd_series_lst, axis=1)
     df.columns = result_dict.keys()
 
-    return (df)
+    return df
 
 
 def cut_zeros(df):
@@ -90,4 +91,4 @@ def cut_zeros(df):
     last_idx = df[df.sum(axis=1).ne(0)].index[-1]
     df = df[:last_idx+1]
 
-    return (df)
+    return df
