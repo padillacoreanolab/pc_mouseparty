@@ -11,6 +11,68 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+def __plot_flag(all_elo_df, cohort, output_dir):
+    """
+    This is a private function that takes in a dataframe for the reward
+    competition protocol and plots the data
+    Args (3 total, 2 required):
+        all_elo_df (pandas dataframe): dataframe to be plotted
+        cohort (str): cohort name
+        output_dir (str): path to output directory
+    Return(None):
+        None
+    """
+    for cage in all_elo_df["cage"].unique():
+        fig, ax = plt.subplots()
+        plt.rcParams["figure.figsize"] = (18, 10)
+        per_cage_df = \
+            all_elo_df[all_elo_df["cage"] == cage]
+
+        for index in per_cage_df["index"].unique():
+            col = "total_trial_number"
+            first_session_in_trial = \
+                per_cage_df[per_cage_df["index"] == index].iloc[0][col]
+            plt.vlines(x=[first_session_in_trial - 0.5],
+                       ymin=700,
+                       ymax=1300,
+                       colors='black',
+                       linestyle='dashed'
+                       )
+
+        # Drawing a line for each subject
+        for subject in sorted(per_cage_df["subject_id"].unique()):
+            # Getting all the rows with the current subject
+            col = "subject_id"
+            subject_df = per_cage_df[per_cage_df[col] == subject]
+            # Making the dates into days after the first session by
+            # subtracting all the dates by the first date
+            plt.plot(subject_df["total_trial_number"],
+                     subject_df["updated_elo_rating"],
+                     '-o',
+                     label=subject
+                     )
+
+        # Labeling the X/Y Axis and the title
+        ax.set_xlabel("Trial Number")
+        ax.set_ylabel("Elo Score")
+        ax.set_title(
+            "{} Elo Rating for {} {}".format(
+                "Rewards Competition", cohort, str(cage))
+        )
+        # To show the legend
+        ax.legend(loc="upper left")
+        plt.xticks(rotation=90)
+        plt.ylim(700, 1300)
+
+        # Checking if out dir exists
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        file_name = "reward_competition_cage" + str(cage) + ".png"
+        plt.savefig(os.path.join(output_dir, file_name))
+    return None
+
+
 def __reward_competition(df, cohort, output_dir, plot_flag=True):
     """
     This private function takes in a dataframe and processes the elo score
@@ -167,60 +229,67 @@ def __reward_competition(df, cohort, output_dir, plot_flag=True):
         by=['cage', "subject_id"], ascending=True).reset_index(drop=True)
 
     if plot_flag:
-        for cage in all_elo_df["cage"].unique():
-            fig, ax = plt.subplots()
-            plt.rcParams["figure.figsize"] = (18, 10)
-            per_cage_df = \
-                all_elo_df[all_elo_df["cage"] == cage]
-
-            for index in per_cage_df["index"].unique():
-                col = "total_trial_number"
-                first_session_in_trial = \
-                    per_cage_df[per_cage_df["index"] == index].iloc[0][col]
-                plt.vlines(x=[first_session_in_trial - 0.5],
-                           ymin=700,
-                           ymax=1300,
-                           colors='black',
-                           linestyle='dashed'
-                           )
-
-            # Drawing a line for each subject
-            for subject in sorted(per_cage_df["subject_id"].unique()):
-                # Getting all the rows with the current subject
-                col = "subject_id"
-                subject_df = per_cage_df[per_cage_df[col] == subject]
-                # Making the dates into days after the first session by
-                # subtracting all the dates by the first date
-                plt.plot(subject_df["total_trial_number"],
-                         subject_df["updated_elo_rating"],
-                         '-o',
-                         label=subject
-                         )
-
-            # Labeling the X/Y Axis and the title
-            ax.set_xlabel("Trial Number")
-            ax.set_ylabel("Elo Score")
-            ax.set_title(
-                "{} Elo Rating for {} {}".format(
-                    "Rewards Competition", cohort, str(cage))
-            )
-            # To show the legend
-            ax.legend(loc="upper left")
-            plt.xticks(rotation=90)
-            plt.ylim(700, 1300)
-
-            # Checking if out dir exists
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
-
-            file_name = "reward_competition_cage" + str(cage) + ".png"
-            plt.savefig(os.path.join(output_dir, file_name))
+        __plot_flag(all_elo_df, cohort, output_dir)
 
     file_name = "reward_competition_cage" + all_cages + ".csv"
     path = os.path.join(output_dir, file_name)
 
     id_to_elo_df.to_csv(path, index=False)
 
+    return None
+
+
+def __plot_flag_process(elo_df, df, protocol, cohort, mode_cage, output_dir):
+    """
+    This is a private function that takes in a dataframe for the process
+    protocol and plots the data
+    Args (6 total, 5 required):
+        elo_df (pandas dataframe): reformatted dataframe from the process
+            function
+        df (pandas dataframe): original dataframe
+        protocol (str): protocol name
+        cohort (str): cohort name
+        mode_cage (int): cage number
+        output_dir (str): path to output directory
+    Return(None):
+        None
+    """
+    max_elo_rating = elo_df["updated_elo_rating"].max()
+    min_elo_rating = elo_df["updated_elo_rating"].min()
+
+    plt.rcParams["figure.figsize"] = (13.5, 7.5)
+    fig, ax = plt.subplots()
+
+    # adjusting session number difference
+    col = "session_number_difference"
+    elo_df[col] = df[col].repeat(2).reset_index(drop=True)
+
+    for index, row in elo_df[elo_df[col].astype(bool)].iterrows():
+        # Offsetting by 0.5 to avoid drawing the line on the dot
+        # Drawing the lines above the max and below the minimum
+        plt.vlines(x=[row["total_match_number"] - 0.5],
+                   ymin=min_elo_rating - 50,
+                   ymax=max_elo_rating + 50,
+                   colors='black',
+                   linestyle='dashed')
+    for subject in sorted(elo_df["subject_id"].unique()):
+        # Getting all the rows with the current subject
+        subject_dataframe = elo_df[elo_df["subject_id"] == subject]
+        # Making the current match number the X-Axis
+        plt.plot(subject_dataframe["total_match_number"],
+                 subject_dataframe["updated_elo_rating"],
+                 '-o',
+                 label=subject)
+    ax.set_xlabel("Trial Number")
+    ax.set_ylabel("Elo rating")
+
+    title = f"{protocol} Elo Rating for {cohort} Cage #{mode_cage}"
+
+    ax.set_title(title)
+    ax.legend(loc="upper left")
+    plt.ylim(min_elo_rating - 50, max_elo_rating + 50)
+    file_name = protocol + "_cage" + str(mode_cage) + ".png"
+    fig.savefig(os.path.join(output_dir, file_name))
     return None
 
 
@@ -320,68 +389,34 @@ def __process(df, protocol, cohort, sheet, output_dir, plot_flag=True):
         os.makedirs(output_dir)
 
     if plot_flag:
-        max_elo_rating = elo_df["updated_elo_rating"].max()
-        min_elo_rating = elo_df["updated_elo_rating"].min()
-
-        plt.rcParams["figure.figsize"] = (13.5, 7.5)
-        fig, ax = plt.subplots()
-
-        # adjusting session number difference
-        col = "session_number_difference"
-        elo_df[col] = df[col].repeat(2).reset_index(drop=True)
-
-        for index, row in elo_df[elo_df[col].astype(bool)].iterrows():
-            # Offsetting by 0.5 to avoid drawing the line on the dot
-            # Drawing the lines above the max and below the minimum
-            plt.vlines(x=[row["total_match_number"] - 0.5],
-                       ymin=min_elo_rating - 50,
-                       ymax=max_elo_rating + 50,
-                       colors='black',
-                       linestyle='dashed')
-        for subject in sorted(elo_df["subject_id"].unique()):
-            # Getting all the rows with the current subject
-            subject_dataframe = elo_df[elo_df["subject_id"] == subject]
-            # Making the current match number the X-Axis
-            plt.plot(subject_dataframe["total_match_number"],
-                     subject_dataframe["updated_elo_rating"],
-                     '-o',
-                     label=subject)
-        ax.set_xlabel("Trial Number")
-        ax.set_ylabel("Elo rating")
-
-        title = f"{protocol} Elo Rating for {cohort} Cage #{mode_cage}"
-
-        ax.set_title(title)
-        ax.legend(loc="upper left")
-        plt.ylim(min_elo_rating - 50, max_elo_rating + 50)
-        file_name = protocol + "_cage" + str(mode_cage) + ".png"
-        fig.savefig(os.path.join(output_dir, file_name))
+        __plot_flag_process(elo_df, df, protocol,
+                            cohort, mode_cage, output_dir)
 
     # Saving df csv to output dir
     file_name = protocol + "_cage" + str(mode_cage) + ".csv"
     elo_df.to_csv(os.path.join(output_dir, file_name), index=False)
+    return None
 
 
 def generate_elo_scores(file_info, output_dir, plot_flag=True):
     """
-        This function takes in a dataframe and processes elo score for
-        home_cage_observation, urine_marking, or test_tube protocols
-        Args (3 total, 3 required):
-            file_info (dict):
-                dictionary with file names as key and value as a dictionary of
-                file information with the following properties:
-                    file_path (str): path to file
-                    protocol (str): protocol name
-                    sheet (list): list of sheet names
-                    cohort (str): cohort name
-            output_dir (str): path to output directory
-            plot_flag (bool): flag to plot data, default True
+    This function takes in a dataframe and processes elo score for
+    home_cage_observation, urine_marking, or test_tube protocols
+    Args (3 total, 3 required):
+        file_info (dict):
+            dictionary with file names as key and value as a dictionary of
+            file information with the following properties:
+                file_path (str): path to file
+                protocol (str): protocol name
+                sheet (list): list of sheet names
+                cohort (str): cohort name
+        output_dir (str): path to output directory
+        plot_flag (bool): flag to plot data, default True
 
-        Return(None):
-            None
+    Return(None):
+        None
     """
-
-    for file_name, file_data in file_info.items():
+    for file_data in file_info.values():
         file_path = file_data["file_path"]
         protocol = file_data["protocol"]
         sheets = file_data["sheet"]
